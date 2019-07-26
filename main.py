@@ -19,9 +19,7 @@ rtt_dir = os.path.join(base_dir, 'rtt', args.date)
 if not os.path.exists(rtt_dir):
     os.mkdir(rtt_dir)
 
-scopes = [
-    'https://www.googleapis.com/auth/spreadsheets'
-]
+scopes = ['https://www.googleapis.com/auth/spreadsheets']
 sheet_id = '1U22HX4tFcHx5xe9potpsItoVeOq7sVpfwferiqbkpHs'
 
 credentials = service_account.Credentials.from_service_account_file(secret_file, scopes=scopes)
@@ -66,20 +64,20 @@ stations_by_name = {station['Name']: station for station in stations}
 
 services = []
 
-for station in stations:
+for i, station in enumerate(stations):
     if not station['Code']:
         continue
 
-    logging.warn('Processing %s', station['Name'])
+    logging.warn('Processing %s (%d/%d)', station['Name'], i + 1, len(stations))
 
     station_file = os.path.join(rtt_dir, '{}.html'.format(station['Code']))
 
     if os.path.exists(station_file):
-        logging.warn('Using cached station page')
+        logging.warn('..Using cached station page')
         with open(station_file) as f:
             html = f.read()
     else:
-        logging.warn('Fetching station page')
+        logging.warn('..Fetching station page')
         r = session.get(base_rtt_url.format(station['Code']))
         html = r.text
         with open(station_file, 'w') as f:
@@ -90,7 +88,10 @@ for station in stations:
 
     service_list = soup.find('table', class_='servicelist')
     if not service_list:
+        logging.warn('..No services today')
         continue
+
+    station_services = []
 
     # recursive=False stops us from parsing trs in thead (there is no tbody)
     for row in service_list.find_all('tr', recursive=False):
@@ -111,15 +112,24 @@ for station in stations:
         if not other_station:
             continue
 
+        origin_station = station if is_origin else other_station
+        dest_station = other_station if is_origin else station
         # ' stops Sheets from parsing the value
-        services.append([
+        station_services.append([
             args.date,
-            '\'' + station['Code'] if is_origin else other_station['Code'],
-            '\'' + other_station['Code'] if is_origin else station['Code'],
+            '\'' + station['Name'] if is_origin else other_station['Name'],
+            '\'' + other_station['Name'] if is_origin else station['Name'],
             '\'' + act_arr.text,
             '\'' + act_dep.text,
             '\'' + id.text
         ])
+
+    logging.warn('..Got %d services', len(station_services))
+
+    services.extend(station_services)
+
+logging.warn('Finished processing stations')
+logging.warn('Got %d services in total', len(services))
 
 if args.no_sheets:
     print('Date\tOrigin\tDestination\tArrival\tDeparture\tID')
@@ -133,4 +143,3 @@ else:
         valueInputOption='USER_ENTERED',
         body={'values': services}
     ).execute()
-    print(result)
