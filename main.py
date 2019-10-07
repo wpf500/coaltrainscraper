@@ -121,7 +121,8 @@ for i, station in enumerate(stations):
             '\'' + other_station['Name'] if is_origin else station['Name'],
             '\'' + act_arr.text,
             '\'' + act_dep.text,
-            '\'' + id.text
+            '\'' + id.text,
+            '\'' + args.date + id.text
         ])
 
     logging.warn('..Got %d services', len(station_services))
@@ -132,7 +133,7 @@ logging.warn('Finished processing stations')
 logging.warn('Got %d services in total', len(services))
 
 if args.no_sheets:
-    print('Date\tOrigin\tDestination\tArrival\tDeparture\tID')
+    print('Date\tOrigin\tDestination\tArrival\tDeparture\tID\tUnique ID')
     for service in services:
         print('\t'.join(service))
 else:
