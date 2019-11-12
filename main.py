@@ -64,36 +64,45 @@ stations_by_name = {station['Name']: station for station in stations}
 
 services = []
 
-for i, station in enumerate(stations):
-    if not station['Code']:
-        continue
-
-    logging.warn('Processing %s (%d/%d)', station['Name'], i + 1, len(stations))
-
-    station_file = os.path.join(rtt_dir, '{}.html'.format(station['Code']))
-
-    if os.path.exists(station_file):
-        logging.warn('..Using cached station page')
-        with open(station_file) as f:
-            html = f.read()
-    else:
-        logging.warn('..Fetching station page')
-        r = session.get(base_rtt_url.format(station['Code']))
-        html = r.text
-        with open(station_file, 'w') as f:
-            f.write(html)
-        time.sleep(1) # Rate limit
-
-    soup = BeautifulSoup(html, features='html.parser')
-
-    service_list = soup.find('div', class_='servicelist')
-    if not service_list:
-        logging.warn('..No services today')
-        continue
-
+def rtt_v1_service_list(service_list):
     station_services = []
 
     # recursive=False stops us from parsing trs in thead (there is no tbody)
+    for row in service_list.find_all('tr', recursive=False):
+        _, plan_arr, act_arr, origin, _, id, toc, dest, plan_dep, act_dep = row.find_all('td')
+
+        is_actual = 'actual' in (act_arr.get('class', []) + act_dep.get('class', []))
+        is_origin = origin.text == 'Starts here'
+
+        # We only want trains that actually ran
+        if not is_actual:
+            continue
+
+        # Ignoring passing trains for now
+        if not is_origin and dest.text != 'Terminates here':
+            continue
+
+        other_station = stations_by_name.get(dest.text if is_origin else origin.text)
+        if not other_station:
+            continue
+
+        origin_station = station if is_origin else other_station
+        dest_station = other_station if is_origin else station
+        # ' stops Sheets from parsing the value
+        station_services.append([
+            args.date,
+            '\'' + station['Name'] if is_origin else other_station['Name'],
+            '\'' + other_station['Name'] if is_origin else station['Name'],
+            '\'' + act_arr.text,
+            '\'' + act_dep.text,
+            '\'' + id.text,
+            '\'' + args.date + id.text
+        ])
+    return station_services
+
+def rtt_v2_service_list(service_list):
+    station_services = []
+
     for row in service_list.find_all('a', class_='service', recursive=False):
         plan_arr = row.select('div.plan.a')[0]
         act_arr = row.select('div.real.a')[0]
@@ -131,6 +140,42 @@ for i, station in enumerate(stations):
             '\'' + id.text,
             '\'' + args.date + id.text
         ])
+
+    return station_services
+
+for i, station in enumerate(stations):
+    if not station['Code']:
+        continue
+
+    logging.warn('Processing %s (%d/%d)', station['Name'], i + 1, len(stations))
+
+    station_file = os.path.join(rtt_dir, '{}.html'.format(station['Code']))
+
+    if os.path.exists(station_file):
+        logging.warn('..Using cached station page')
+        with open(station_file) as f:
+            html = f.read()
+    else:
+        logging.warn('..Fetching station page')
+        r = session.get(base_rtt_url.format(station['Code']))
+        html = r.text
+        with open(station_file, 'w') as f:
+            f.write(html)
+        time.sleep(1) # Rate limit
+
+    soup = BeautifulSoup(html, features='html.parser')
+
+    service_list = soup.find('div', class_='servicelist')
+    if service_list:
+        station_services = rtt_v2_service_list(service_list)
+    else:
+        service_list = soup.find('table', class_='servicelist')
+        if service_list:
+            station_services = rtt_v1_service_list(service_list)
+
+    if not service_list:
+        logging.warn('..No services today')
+        continue
 
     logging.warn('..Got %d services', len(station_services))
 
