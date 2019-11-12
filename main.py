@@ -26,7 +26,7 @@ credentials = service_account.Credentials.from_service_account_file(secret_file,
 service = discovery.build('sheets', 'v4', credentials=credentials)
 
 rtt_date = args.date.replace('-', '/')
-base_rtt_url = 'http://www.realtimetrains.co.uk/search/advanced/{}/' + rtt_date + '/0000-2359'
+base_rtt_url = 'http://www.realtimetrains.co.uk/search/detailed/{}/' + rtt_date + '/0000-2359'
 
 # Get list of stations
 
@@ -86,7 +86,7 @@ for i, station in enumerate(stations):
 
     soup = BeautifulSoup(html, features='html.parser')
 
-    service_list = soup.find('table', class_='servicelist')
+    service_list = soup.find('div', class_='servicelist')
     if not service_list:
         logging.warn('..No services today')
         continue
@@ -94,10 +94,17 @@ for i, station in enumerate(stations):
     station_services = []
 
     # recursive=False stops us from parsing trs in thead (there is no tbody)
-    for row in service_list.find_all('tr', recursive=False):
-        _, plan_arr, act_arr, origin, _, id, toc, dest, plan_dep, act_dep = row.find_all('td')
+    for row in service_list.find_all('a', class_='service', recursive=False):
+        plan_arr = row.select('div.plan.a')[0]
+        act_arr = row.select('div.real.a')[0]
+        origin = row.select('div.location.o')[0]
+        id = row.select('div.tid')[0]
+        toc = row.select('div.toc')[0]
+        dest = row.select('div.location.d')[0]
+        plan_dep = row.select('div.plan.d')[0]
+        act_dep = row.select('div.real.d')[0]
 
-        is_actual = 'actual' in (act_arr.get('class', []) + act_dep.get('class', []))
+        is_actual = 'act' in (act_arr.get('class', []) + act_dep.get('class', []))
         is_origin = origin.text == 'Starts here'
 
         # We only want trains that actually ran
