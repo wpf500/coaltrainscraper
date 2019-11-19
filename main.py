@@ -8,6 +8,7 @@ from google.oauth2 import service_account
 
 parser = argparse.ArgumentParser(description='Fetch train movements')
 parser.add_argument('date', help='YYYY-MM-DD')
+parser.add_argument('--no-rtt', action='store_true')
 parser.add_argument('--no-sheets', action='store_true')
 
 args = parser.parse_args()
@@ -155,6 +156,9 @@ for i, station in enumerate(stations):
         logging.warn('..Using cached station page')
         with open(station_file) as f:
             html = f.read()
+    elif args.no_rtt:
+        logging.warn('..No cached station page')
+        continue
     else:
         logging.warn('..Fetching station page')
         r = session.get(base_rtt_url.format(station['Code']))
