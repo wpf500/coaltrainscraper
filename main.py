@@ -71,6 +71,8 @@ def rtt_v1_service_list(service_list):
     # recursive=False stops us from parsing trs in thead (there is no tbody)
     for row in service_list.find_all('tr', recursive=False):
         _, plan_arr, act_arr, origin, _, id, toc, dest, plan_dep, act_dep = row.find_all('td')
+        # /train/<tid>/[YYYY/MM/DD]/advanced
+        date = id.a['href'][-19:-9].replace('/', '-')
 
         is_actual = 'actual' in (act_arr.get('class', []) + act_dep.get('class', []))
         is_origin = origin.text == 'Starts here'
@@ -91,13 +93,13 @@ def rtt_v1_service_list(service_list):
         dest_station = other_station if is_origin else station
         # ' stops Sheets from parsing the value
         station_services.append([
-            args.date,
+            date,
             '\'' + station['Name'] if is_origin else other_station['Name'],
             '\'' + other_station['Name'] if is_origin else station['Name'],
             '\'' + act_arr.text,
             '\'' + act_dep.text,
             '\'' + id.text,
-            '\'' + args.date + id.text
+            '\'' + date + id.text
         ])
     return station_services
 
@@ -105,6 +107,8 @@ def rtt_v2_service_list(service_list):
     station_services = []
 
     for row in service_list.find_all('a', class_='service', recursive=False):
+        # /train/<tid>/[YYYY-MM-DD]/detailed
+        date = row['href'][-19:-9]
         plan_arr = row.select('div.plan.a')[0]
         act_arr = row.select('div.real.a')[0]
         origin = row.select('div.location.o')[0]
@@ -133,13 +137,13 @@ def rtt_v2_service_list(service_list):
         dest_station = other_station if is_origin else station
         # ' stops Sheets from parsing the value
         station_services.append([
-            args.date,
+            date,
             '\'' + station['Name'] if is_origin else other_station['Name'],
             '\'' + other_station['Name'] if is_origin else station['Name'],
             '\'' + act_arr.text,
             '\'' + act_dep.text,
             '\'' + id.text,
-            '\'' + args.date + id.text
+            '\'' + date + id.text
         ])
 
     return station_services
