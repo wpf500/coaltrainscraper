@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=PT+Mono|Raleway&display=swap" rel="stylesheet">
+  <style>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-size: 16px;
+      font-family: 'Raleway', sans-serif;
+    }
+    p {
+      margin: 0 0 1rem;
+    }
+    p > span {
+      background-color: rgb(241, 232, 228, 0.6);
+    }
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      padding: 1rem;
+      box-sizing: border-box;
+      background: url(bg.png);
+      background-size: 100% auto;
+      background-position: center bottom;
+      background-repeat: no-repeat;
+      background-color: rgb(241, 232, 228);
+    }
+
+    .counter-row {
+      display: flex;
+      align-items: baseline;
+    }
+    .counter-row > p {
+      flex: 0 1 450px;
+    }
+    .counter {
+      display: flex;
+      flex: 0 0 auto;
+      margin-right: 0.5rem;
+      margin-bottom: 1rem;
+      font-family: 'PT Mono', monospace;
+      font-size: 32px;
+    }
+    @media (min-width: 400px) {
+      .counter {
+        font-size: 48px;
+      }
+    }
+    .counter > span {
+      position: relative;
+      margin-right: 0.1rem;
+      border-radius: 3px;
+      overflow: hidden;
+      padding: 0 0.1rem;
+      color: #4f4f50;
+    }
+    .counter > span::before,
+    .counter > span::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 40%;
+      opacity: 0.5;
+    }
+    .counter > span::before {
+      top: 0;
+      background: linear-gradient(to bottom, #3b4349, rgba(0, 0, 0, 0));
+    }
+    .counter > span::after {
+      bottom: 0;
+      background: linear-gradient(to top, #3b4349, rgba(0, 0, 0, 0));
+    }
+    .source {
+      position: fixed;
+      bottom: 0.5rem;
+      right: 0.5rem;
+      font-size: 12px;
+      color: white;
+    }
+    .source > a {
+      color: inherit;
+    }
+    .link {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    .logo {
+      width: 200px;
+      display: inline-block;
+      vertical-align: middle;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p>
+      <img class="logo" src="banks.png" alt="Banks Group"> <span>supplies coal to UK coal-fired power stations.</span>
+    </p>
+
+    <p>
+      <span>From 01/09/2019 to date&hellip;</span>
+    </p>
+
+    <div class="counter-row">
+      <div class="counter">
+        {{#total_trains}}
+          <span>{{.}}</span>
+        {{/total_trains}}
+      </div>
+      <p>
+        <span>
+          trains have gone from Banks' stock pile in North Blyth to
+          West Burton Power Station, carrying an estimated&hellip;
+        </span>
+      </p>
+    </div>
+
+    <div class="counter-row">
+      <div class="counter">
+        {{#total_coal}}
+          <span>{{.}}</span>
+        {{/total_coal}}
+      </div>
+      <p><span>tonnes of coal.</span></p>
+    </div>
+
+    <p><span>The last train left on {{last_train_date}}.</span></p>
+    <a class="link" href="#"></a>
+    <span class="source">
+      Last updated {{last_updated}}, source: <a href="https://realtimetrains.co.uk">realtimetrains.co.uk</a>
+    </a>
+  </div>
+</body>
+</html>

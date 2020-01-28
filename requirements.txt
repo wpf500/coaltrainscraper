@@ -1,4 +1,5 @@
 beautifulsoup4==4.8.0
 google-api-python-client==1.7.10
 google-auth-httplib2==0.0.3
+pystache==0.5.4
 requests==2.22.0
