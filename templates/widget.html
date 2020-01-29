@@ -12,6 +12,7 @@
       padding: 0;
       font-size: 16px;
       font-family: 'Raleway', sans-serif;
+      color: #4f4f50;
     }
     p {
       margin: 0 0 1rem;
@@ -77,12 +78,34 @@
       bottom: 0;
       background: linear-gradient(to top, #3b4349, rgba(0, 0, 0, 0));
     }
+    @keyframes live {
+      0% { opacity: 0; }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+    .last-updated {
+      font-size: 12px;
+    }
+    .last-updated::before {
+      content: "";
+      display: inline-block;
+      vertical-align: middle;
+      margin-top: -0.1rem;
+      background-color: #a02d29;
+      border-radius: 10px;
+      width: 12px;
+      height: 12px;
+      margin-right: 0.3rem;
+      animation: live 1.2s infinite;
+    }
     .source {
       position: fixed;
-      bottom: 0.5rem;
-      right: 0.5rem;
+      bottom: 0;
       font-size: 12px;
       color: white;
+      padding: 0.1rem 0.5rem;
+      right: 0;
     }
     .source > a {
       color: inherit;
@@ -136,9 +159,10 @@
     </div>
 
     <p><span>The last train left on {{last_train_date}}.</span></p>
+    <p><span class="last-updated">Last updated {{last_updated}}</span></p>
     <a class="link" href="https://www.coalaction.org.uk/2020/01/where-does-banks-coal-go" target="_top"></a>
     <span class="source">
-      Last updated {{last_updated}}, source: <a href="https://realtimetrains.co.uk" target="_blank">realtimetrains.co.uk</a>
+       Source: <a href="https://realtimetrains.co.uk" target="_blank">realtimetrains.co.uk</a>
     </a>
   </div>
 </body>
