@@ -2,3 +2,4 @@ auth.json
 stations.pkl
 /env/
 /uploads/widget.html
+upload_widget.sh
